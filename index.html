@@ -809,6 +809,17 @@ function renderAll(){
 }
 
 function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(DB))}
+  function schedDriveSave(){
+
+  // Guardado local
+  persist();
+
+  // Si Drive está conectado
+  if(accessToken){
+
+    saveToDrive();
+  }
+}
 function load(){
 
   try{
