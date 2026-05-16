@@ -80,6 +80,21 @@ textarea{resize:vertical}
 </head>
 <body>
 <header id="hdr">
+  <div class="actions">
+
+  <button class="btn bp bsm" onclick="connectDrive()">
+    ☁ Drive
+  </button>
+
+  <button class="btn bg bsm" onclick="saveToDrive()">
+    💾 Guardar
+  </button>
+
+  <button class="btn bg bsm" onclick="loadFromDrive()">
+    ⬇ Cargar
+  </button>
+
+</div>
   <div class="logo">
     <div class="shield">VH</div>
     <div>
@@ -150,17 +165,7 @@ textarea{resize:vertical}
         <button class="btn bg bsm" onclick="document.getElementById('imp').click()">Importar JSON</button>
         <input type="file" id="imp" accept=".json" style="display:none" onchange="importJSON(event)">
         <button class="btn bd bsm" onclick="resetAll()">Borrar todo</button>
-        <button class="btn bp" onclick="connectDrive()">
-  ☁ Conectar Drive
-</button>
-
-<button class="btn bg" onclick="saveToDrive()">
-  💾 Guardar Drive
-</button>
-
-<button class="btn bg" onclick="loadFromDrive()">
-  ⬇ Cargar Drive
-</button>
+        
       </div>
     </div>
     <div class="pb">
