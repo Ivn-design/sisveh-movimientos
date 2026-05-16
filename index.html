@@ -606,8 +606,11 @@ window.onload=()=>{
   load();
 
   document.getElementById('fecha').value=hoy();
-  document.getElementById('sharedDriveId').value=sharedFileId;
-document.getElementById('driveRole').value=driveRole;
+  const sharedInput=document.getElementById('sharedDriveId');
+if(sharedInput) sharedInput.value=sharedFileId;
+
+const roleInput=document.getElementById('driveRole');
+if(roleInput) roleInput.value=driveRole;
 
   renderAll();
 
@@ -666,9 +669,38 @@ if(ds){
   });
 }
 
-  let sharedFileId=localStorage.getItem('sisveh_shared_id')||'';
+  function connectSharedDrive(){
 
-let driveRole=localStorage.getItem('sisveh_drive_role')||'';
+  sharedFileId=document.getElementById('sharedDriveId').value.trim();
+  driveRole=document.getElementById('driveRole').value;
+
+  localStorage.setItem('sisveh_shared_id',sharedFileId);
+  localStorage.setItem('sisveh_drive_role',driveRole);
+
+  if(!sharedFileId){
+    toast('Introduce un ID válido','err');
+    return;
+  }
+
+  toast('Archivo compartido configurado');
+
+  loadFromDrive();
+}
+
+function copyDriveFileId(){
+
+  const id=driveFileId||sharedFileId||'';
+
+  if(!id){
+    toast('No existe ID todavía','err');
+    return;
+  }
+
+  navigator.clipboard.writeText(id);
+
+  toast('ID copiado');
+}
+
 
 // ─────────────────────────────────────────
 
