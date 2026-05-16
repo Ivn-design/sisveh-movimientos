@@ -150,43 +150,6 @@ textarea{resize:vertical}
   </div>
   <div class="actions">
 
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:10px">
-
-  <input
-    id="sharedDriveId"
-    placeholder="ID archivo compartido"
-    style="
-      background:var(--bg3);
-      border:1px solid var(--b2);
-      color:var(--tx);
-      border-radius:5px;
-      padding:6px 10px;
-      width:240px;
-      font-size:11px;
-    "
-  >
-
-  <select
-    id="driveRole"
-    style="
-      background:var(--bg3);
-      border:1px solid var(--b2);
-      color:var(--tx);
-      border-radius:5px;
-      padding:6px;
-      font-size:11px;
-    "
-  >
-    <option value="editor">Editor</option>
-    <option value="lector">Lector</option>
-  </select>
-
-  <button class="btn bg bsm" onclick="connectSharedDrive()">
-    🔗 Conectar compartido
-  </button>
-
-</div>
-
   <button class="btn bp bsm" onclick="connectDrive()">
     ☁ Drive
   </button>
@@ -727,6 +690,38 @@ if(ds){
   });
 }
 
+  function connectSharedDrive(){
+
+  sharedFileId=document.getElementById('sharedDriveId').value.trim();
+  driveRole=document.getElementById('driveRole').value;
+
+  localStorage.setItem('sisveh_shared_id',sharedFileId);
+  localStorage.setItem('sisveh_drive_role',driveRole);
+
+  if(!sharedFileId){
+    toast('Introduce un ID válido','err');
+    return;
+  }
+
+  toast('Archivo compartido configurado');
+
+  loadFromDrive();
+}
+
+function copyDriveFileId(){
+
+  const id=driveFileId||sharedFileId||'';
+
+  if(!id){
+    toast('No existe ID todavía','err');
+    return;
+  }
+
+  navigator.clipboard.writeText(id);
+
+  toast('ID copiado');
+}
+  
 // ─────────────────────────────────────────
 
 async function saveToDrive(){
@@ -820,7 +815,25 @@ async function loadFromDrive(){
     toast('Conecta Drive primero','err');
     return;
   }
+if(sharedFileId){
 
+  driveFileId=sharedFileId;
+
+  const res=await gapi.client.request({
+    path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
+    params:{alt:'media'}
+  });
+
+  DB=res.result;
+
+  persist();
+
+  renderAll();
+
+  toast('Archivo compartido cargado');
+
+  return;
+}
   const list=await gapi.client.request({
     path:'https://www.googleapis.com/drive/v3/files',
     params:{
