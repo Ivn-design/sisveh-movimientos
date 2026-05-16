@@ -1069,8 +1069,13 @@ if(df) df.value=currentId;
 const cf=document.getElementById('cfgFileStatus');
 if(cf) cf.textContent=currentId || '—';
 
+actualizarEstadoArchivo();
+
 const lg=document.getElementById('cfgLastSaved');
-if(lg) lg.textContent=new Date().toLocaleString('es-ES');
+
+if(lg){
+  lg.textContent=new Date().toLocaleString('es-ES');
+}
   
   toast('Guardado en Drive');
 }
@@ -1156,10 +1161,16 @@ function actualizarEstadoArchivo(){
   const currentId=driveFileId||sharedFileId||'';
 
   const df=document.getElementById('driveFileDisplay');
-  if(df) df.value=currentId;
+
+  if(df){
+    df.value=currentId;
+  }
 
   const cf=document.getElementById('cfgFileStatus');
-  if(cf) cf.textContent=currentId || '—';
+
+  if(cf){
+    cf.textContent=currentId || '—';
+  }
 
 }
   function showTab(id,btn){
