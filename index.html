@@ -245,77 +245,6 @@ textarea{resize:vertical}
   </section>
 
   <section class="pn">
-
-  <div class="ph">
-    <div class="pt">⚙ Configuración Multiusuario</div>
-  </div>
-
-  <div class="pb">
-
-    <p class="tip">
-      Permite que varios usuarios trabajen sobre el mismo archivo JSON compartido en Google Drive.
-    </p>
-
-    <div class="fg">
-
-      <div class="fr">
-        <label>ID archivo compartido</label>
-
-        <input
-          id="sharedDriveId"
-          placeholder="Pega aquí el ID del archivo compartido"
-        >
-      </div>
-
-      <div class="fr">
-
-        <label>Rol de usuario</label>
-
-        <select id="driveRole">
-          <option value="editor">Editor</option>
-          <option value="lector">Solo lectura</option>
-        </select>
-
-      </div>
-
-    </div>
-
-    <div class="actions">
-
-      <button class="btn bp bsm" onclick="connectSharedDrive()">
-        🔗 Conectar archivo compartido
-      </button>
-
-      <button class="btn bg bsm" onclick="copyDriveFileId()">
-        📋 Copiar ID actual
-      </button>
-
-    </div>
-
-    <div class="sep"></div>
-
-    <p class="tip">
-      INSTRUCCIONES:
-      <br><br>
-
-      1. El usuario principal conecta Drive y guarda datos.
-      <br>
-
-      2. Copia el ID del archivo actual.
-      <br>
-
-      3. Comparte el archivo JSON desde Google Drive con otros usuarios.
-      <br>
-
-      4. Los demás usuarios pegan ese ID aquí y pulsan:
-      “Conectar archivo compartido”.
-    </p>
-
-  </div>
-
-</section>
-  
-  <section class="pn">
     <div class="ph">
       <div class="pt">📋 Historial de movimientos</div>
       <div class="actions">
@@ -606,11 +535,8 @@ window.onload=()=>{
   load();
 
   document.getElementById('fecha').value=hoy();
-  const sharedInput=document.getElementById('sharedDriveId');
-if(sharedInput) sharedInput.value=sharedFileId;
-
-const roleInput=document.getElementById('driveRole');
-if(roleInput) roleInput.value=driveRole;
+  document.getElementById('sharedDriveId').value=sharedFileId;
+document.getElementById('driveRole').value=driveRole;
 
   renderAll();
 
@@ -669,87 +595,6 @@ if(ds){
   });
 }
 
-  function connectSharedDrive(){
-
-  sharedFileId=document.getElementById('sharedDriveId').value.trim();
-  driveRole=document.getElementById('driveRole').value;
-
-  localStorage.setItem('sisveh_shared_id',sharedFileId);
-  localStorage.setItem('sisveh_drive_role',driveRole);
-
-  if(!sharedFileId){
-    toast('Introduce un ID válido','err');
-    return;
-  }
-
-  toast('Archivo compartido configurado');
-
-  loadFromDrive();
-}
-
-function copyDriveFileId(){
-
-  const id=driveFileId||sharedFileId||'';
-
-  if(!id){
-    toast('No existe ID todavía','err');
-    return;
-  }
-
-  navigator.clipboard.writeText(id);
-
-  toast('ID copiado');
-}
-
-
-// ─────────────────────────────────────────
-
-function connectSharedDrive(){
-
-  sharedFileId=document.getElementById('sharedDriveId').value.trim();
-
-  driveRole=document.getElementById('driveRole').value;
-
-  localStorage.setItem(
-    'sisveh_shared_id',
-    sharedFileId
-  );
-
-  localStorage.setItem(
-    'sisveh_drive_role',
-    driveRole
-  );
-
-  if(!sharedFileId){
-
-    toast('Introduce un ID válido','err');
-
-    return;
-  }
-
-  toast('Archivo compartido configurado');
-
-  loadFromDrive();
-}
-
-// ─────────────────────────────────────────
-
-function copyDriveFileId(){
-
-  const id=driveFileId||sharedFileId||'';
-
-  if(!id){
-
-    toast('No existe ID todavía','err');
-
-    return;
-  }
-
-  navigator.clipboard.writeText(id);
-
-  toast('ID copiado');
-}
-  
 // ─────────────────────────────────────────
 
 async function saveToDrive(){
