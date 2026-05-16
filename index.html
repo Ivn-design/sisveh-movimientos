@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
 <title>SISVEH · Control de Movimientos</title>
 <meta name="theme-color" content="#080c14">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Exo+2:wght@400;500;600&display=swap');
 :root{
@@ -461,17 +463,22 @@ function toast(msg,type=''){
 }
 function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleString('es-ES')}
 setInterval(updateClock,1000);
-window.onload=()=>{updateClock();load();document.getElementById('fecha').value=hoy();renderAll();}
-   // ── GOOGLE DRIVE FUNCTIONS ─────────────────────────
-
 window.onload=()=>{
+
+  updateClock();
+
+  load();
+
+  document.getElementById('fecha').value=hoy();
 
   gapi.load('client',async()=>{
     await gapi.client.init({});
   });
 
   tokenClient=google.accounts.oauth2.initTokenClient({
+
     client_id:CLIENT_ID,
+
     scope:SCOPES,
 
     callback:(resp)=>{
@@ -487,147 +494,31 @@ window.onload=()=>{
         access_token:accessToken
       });
 
-      alert('Drive conectado');
+      toast('Drive conectado');
     }
   });
 
-  render();
+  renderAll();
 };
-function connectDrive(){
+
+  function connectDrive(){
 
   tokenClient.requestAccessToken({
     prompt:'consent'
   });
 }
 
+// ─────────────────────────────────────────
+
 async function saveToDrive(){
 
   if(!accessToken){
-    alert('Conecta Drive primero');
+    toast('Conecta Drive primero','err');
     return;
   }
 
   const content=JSON.stringify(DB,null,2);
 
-  const list=await gapi.client.request({
-    path:'https://www.googleapis.com/drive/v3/files',
-    params:{
-      q:`name='${FILE_NAME}' and trashed=false`,
-      fields:'files(id,name)'
-    }
-  });
-
-  const files=list.result.files;
-
-  if(files.length>0){
-
-    driveFileId=files[0].id;
-
-    await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
-      {
-        method:'PATCH',
-        headers:{
-          Authorization:'Bearer '+accessToken,
-          'Content-Type':'application/json'
-        },
-        body:content
-      }
-    );
-
-  }else{
-
-    const metadata={
-      name:FILE_NAME,
-      mimeType:'application/json'
-    };
-
-    const form=new FormData();
-
-    form.append(
-      'metadata',
-      new Blob([JSON.stringify(metadata)],{type:'application/json'})
-    );
-
-    form.append(
-      'file',
-      new Blob([content],{type:'application/json'})
-    );
-
-    const res=await fetch(
-      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-      {
-        method:'POST',
-        headers:{Authorization:'Bearer '+accessToken},
-        body:form
-      }
-    );
-
-    const data=await res.json();
-    driveFileId=data.id;
-  }
-
-  alert('Guardado en Drive');
-}
-
-async function loadFromDrive(){
-
-  if(!accessToken){
-    alert('Conecta Drive primero');
-    return;
-  }
-
-  const list=await gapi.client.request({
-    path:'https://www.googleapis.com/drive/v3/files',
-    params:{
-      q:`name='${FILE_NAME}' and trashed=false`,
-      fields:'files(id,name)'
-    }
-  });
-
-  const files=list.result.files;
-
-  if(!files.length){
-    alert('No existe archivo Drive');
-    return;
-  }
-
-  driveFileId=files[0].id;
-
-  const res=await gapi.client.request({
-    path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
-    params:{alt:'media'}
-  });
-
-  DB=res.result;
-
-  saveLocal();
-  render();
-
-  alert('Datos cargados');
-}
-  
-// ───────────────────────────────────────────────────
-
-function connectDrive(){
-
-  tokenClient.requestAccessToken({
-    prompt:'consent'
-  });
-}
-
-// ───────────────────────────────────────────────────
-
-async function saveToDrive(){
-
-  if(!accessToken){
-    alert('Conecta Drive primero');
-    return;
-  }
-
-  const content=JSON.stringify(DB,null,2);
-
-  // Buscar archivo existente
   const list=await gapi.client.request({
     path:'https://www.googleapis.com/drive/v3/files',
     params:{
@@ -699,15 +590,15 @@ async function saveToDrive(){
     driveFileId=data.id;
   }
 
-  alert('Guardado en Drive');
+  toast('Guardado en Drive');
 }
 
-// ───────────────────────────────────────────────────
+// ─────────────────────────────────────────
 
 async function loadFromDrive(){
 
   if(!accessToken){
-    alert('Conecta Drive primero');
+    toast('Conecta Drive primero','err');
     return;
   }
 
@@ -722,7 +613,7 @@ async function loadFromDrive(){
   const files=list.result.files;
 
   if(!files.length){
-    alert('No existe archivo Drive');
+    toast('No existe archivo Drive','err');
     return;
   }
 
@@ -735,12 +626,16 @@ async function loadFromDrive(){
 
   DB=res.result;
 
-  saveLocal();
+  persist();
 
-  render();
+  renderAll();
 
-  alert('Datos cargados');
+  toast('Datos cargados');
 }
+
+  
+
+  
 </script>
 </body>
 </html>
