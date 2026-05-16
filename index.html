@@ -188,6 +188,45 @@ textarea{resize:vertical}
     <div class="card"><div class="sv" id="stStop">—</div><div class="sl">Media parado</div></div>
   </section>
 
+    <section class="pn">
+  <div class="ph">
+    <div class="pt">🗂 Operaciones y vehículos</div>
+  </div>
+
+  <div class="pb">
+
+    <div class="fg">
+      <div class="fr">
+        <label>Nueva operación</label>
+        <input id="newOp" placeholder="Ej: Operación Alfa">
+      </div>
+
+      <div class="fr" style="display:flex;align-items:end;">
+        <button class="btn bp" onclick="addOperacion()">+ Crear operación</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fr">
+        <label>Operación activa</label>
+        <select id="activeOp" onchange="renderAll()">
+          <option value="">Selecciona operación</option>
+        </select>
+      </div>
+
+      <div class="fr">
+        <label>Nuevo vehículo en operación</label>
+        <input id="newVeh" placeholder="Matrícula, alias o descripción">
+      </div>
+
+      <div class="fr" style="display:flex;align-items:end;">
+        <button class="btn bp" onclick="addVehiculo()">+ Añadir vehículo</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+    
   <section class="pn">
     <div class="ph">
       <div class="pt">➕ Alta rápida</div>
@@ -200,13 +239,18 @@ textarea{resize:vertical}
       <p class="tip">Registra una operación, un vehículo controlado y sus movimientos. El sistema calcula automáticamente el tiempo parado entre la hora de parada de un movimiento y el inicio del siguiente movimiento del mismo vehículo en la misma operación.</p>
       <div class="fg">
         <div class="fr">
-          <label>Operación</label>
-          <input id="op" placeholder="Ej: Operación Alfa">
-        </div>
-        <div class="fr">
-          <label>Vehículo controlado</label>
-          <input id="veh" placeholder="Matrícula, alias o descripción">
-        </div>
+  <label>Operación</label>
+  <select id="op" onchange="renderVehiculosMovimiento()">
+    <option value="">Selecciona operación</option>
+  </select>
+</div>
+
+<div class="fr">
+  <label>Vehículo controlado</label>
+  <select id="veh">
+    <option value="">Selecciona vehículo</option>
+  </select>
+</div>
         <div class="fr">
           <label>Fecha</label>
           <input type="date" id="fecha">
@@ -430,7 +474,11 @@ textarea{resize:vertical}
 <script>
 const STORAGE_KEY='sisveh_movimientos_v1';
 let editId=null;
-let DB={movimientos:[]};
+let DB={
+  operaciones:[],
+  vehiculos:[],
+  movimientos:[]
+};
 
    // ── GOOGLE DRIVE ─────────────────────────────
 
@@ -490,9 +538,111 @@ function getFiltered(){
   );
 }
 
+  function addOperacion(){
+  const nombre=document.getElementById('newOp').value.trim();
+
+  if(!nombre){
+    toast('Introduce nombre de operación','err');
+    return;
+  }
+
+  if(DB.operaciones.some(o=>o.nombre.toLowerCase()===nombre.toLowerCase())){
+    toast('Esa operación ya existe','err');
+    return;
+  }
+
+  DB.operaciones.push({
+    id:uid(),
+    nombre
+  });
+
+  document.getElementById('newOp').value='';
+
+  persist();
+  renderAll();
+
+  toast('Operación creada');
+}
+
+function addVehiculo(){
+  const opId=document.getElementById('activeOp').value;
+  const nombre=document.getElementById('newVeh').value.trim();
+
+  if(!opId){
+    toast('Selecciona una operación','err');
+    return;
+  }
+
+  if(!nombre){
+    toast('Introduce vehículo','err');
+    return;
+  }
+
+  if(DB.vehiculos.some(v=>String(v.opId)===String(opId) && v.nombre.toLowerCase()===nombre.toLowerCase())){
+    toast('Ese vehículo ya existe en la operación','err');
+    return;
+  }
+
+  DB.vehiculos.push({
+    id:uid(),
+    opId:parseInt(opId),
+    nombre
+  });
+
+  document.getElementById('newVeh').value='';
+
+  persist();
+  renderAll();
+
+  toast('Vehículo añadido');
+}
+
+function renderOperacionesVehiculos(){
+  const activeOp=document.getElementById('activeOp');
+  const opMov=document.getElementById('op');
+
+  if(activeOp){
+    const old=activeOp.value;
+    activeOp.innerHTML='<option value="">Selecciona operación</option>'+
+      DB.operaciones.map(o=>`<option value="${o.id}">${escapeHTML(o.nombre)}</option>`).join('');
+    activeOp.value=old;
+  }
+
+  if(opMov){
+    const old=opMov.value;
+    opMov.innerHTML='<option value="">Selecciona operación</option>'+
+      DB.operaciones.map(o=>`<option value="${o.id}">${escapeHTML(o.nombre)}</option>`).join('');
+    opMov.value=old;
+  }
+
+  renderVehiculosMovimiento();
+}
+
+function renderVehiculosMovimiento(){
+  const opId=document.getElementById('op')?.value;
+  const veh=document.getElementById('veh');
+
+  if(!veh)return;
+
+  const old=veh.value;
+
+  const lista=DB.vehiculos.filter(v=>String(v.opId)===String(opId));
+
+  veh.innerHTML='<option value="">Selecciona vehículo</option>'+
+    lista.map(v=>`<option value="${v.id}">${escapeHTML(v.nombre)}</option>`).join('');
+
+  veh.value=old;
+}
+  
 function saveMovement(){
-  const op=document.getElementById('op').value.trim();
-  const veh=document.getElementById('veh').value.trim();
+  const opId=document.getElementById('op').value;
+const vehId=document.getElementById('veh').value;
+
+const opObj=DB.operaciones.find(o=>String(o.id)===String(opId));
+const vehObj=DB.vehiculos.find(v=>String(v.id)===String(vehId));
+
+const op=opObj?opObj.nombre:'';
+const veh=vehObj?vehObj.nombre:'';
   const fecha=document.getElementById('fecha').value;
   const hini=document.getElementById('hini').value;
   const hpar=document.getElementById('hpar').value;
@@ -626,6 +776,7 @@ function renderStats(){
 }
 
 function renderAll(){
+  renderOperacionesVehiculos();
   renderFilters();
   renderStats();
   renderTable();
@@ -633,7 +784,19 @@ function renderAll(){
 }
 
 function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(DB))}
-function load(){try{DB=JSON.parse(localStorage.getItem(STORAGE_KEY))||DB}catch(e){}}
+function load(){
+  try{
+    const data=JSON.parse(localStorage.getItem(STORAGE_KEY));
+
+    if(data){
+      DB={
+        operaciones:data.operaciones||[],
+        vehiculos:data.vehiculos||[],
+        movimientos:data.movimientos||[]
+      };
+    }
+  }catch(e){}
+}
 function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;DB={movimientos:[]};persist();renderAll();toast('Datos borrados')}
 function exportJSON(){download('sisveh_backup.json',JSON.stringify(DB,null,2),'application/json')}
 function importJSON(e){
@@ -718,8 +881,10 @@ if(ds){
           const cfg=document.getElementById('cfgDriveStatus');
 
 if(cfg){
-  cfg.textContent='Conectado';
+  cfg.innerHTML='✅ Conectado';
+  cfg.style.color='var(--green)';
 }
+          loadFromDrive();
           
           toast('Drive conectado');
         }
@@ -889,6 +1054,17 @@ if(lg){
   lg.textContent=new Date().toLocaleString('es-ES');
 }
 
+const currentId=driveFileId||sharedFileId||'';
+
+const df=document.getElementById('driveFileDisplay');
+if(df) df.value=currentId;
+
+const cf=document.getElementById('cfgFileStatus');
+if(cf) cf.textContent=currentId || '—';
+
+const lg=document.getElementById('cfgLastSaved');
+if(lg) lg.textContent=new Date().toLocaleString('es-ES');
+  
   toast('Guardado en Drive');
 }
 
@@ -915,6 +1091,14 @@ if(sharedFileId){
 
   renderAll();
 
+const currentId=driveFileId||sharedFileId||'';
+
+const df=document.getElementById('driveFileDisplay');
+if(df) df.value=currentId;
+
+const cf=document.getElementById('cfgFileStatus');
+if(cf) cf.textContent=currentId || '—';
+  
   toast('Archivo compartido cargado');
 
   return;
@@ -947,6 +1131,14 @@ if(sharedFileId){
 
   renderAll();
 
+const currentId=driveFileId||sharedFileId||'';
+
+const df=document.getElementById('driveFileDisplay');
+if(df) df.value=currentId;
+
+const cf=document.getElementById('cfgFileStatus');
+if(cf) cf.textContent=currentId || '—';
+  
   toast('Datos cargados');
 }
 
