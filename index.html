@@ -148,6 +148,17 @@ textarea{resize:vertical}
         <button class="btn bg bsm" onclick="document.getElementById('imp').click()">Importar JSON</button>
         <input type="file" id="imp" accept=".json" style="display:none" onchange="importJSON(event)">
         <button class="btn bd bsm" onclick="resetAll()">Borrar todo</button>
+        <button class="btn bp" onclick="connectDrive()">
+  ☁ Conectar Drive
+</button>
+
+<button class="btn bg" onclick="saveToDrive()">
+  💾 Guardar Drive
+</button>
+
+<button class="btn bg" onclick="loadFromDrive()">
+  ⬇ Cargar Drive
+</button>
       </div>
     </div>
     <div class="pb">
@@ -210,11 +221,23 @@ textarea{resize:vertical}
     </div>
   </section>
 </main>
-
+   
 <script>
 const STORAGE_KEY='sisveh_movimientos_v1';
 let editId=null;
 let DB={movimientos:[]};
+
+   // ── GOOGLE DRIVE ─────────────────────────────
+
+const CLIENT_ID='29526949111-1hkr5p6cjmsccnel8984tm2d2e94o7q0.apps.googleusercontent.com';
+
+const SCOPES='https://www.googleapis.com/auth/drive';
+
+const FILE_NAME='sisveh_movimientos_data.json';
+
+let tokenClient=null;
+let accessToken=null;
+let driveFileId=null;
 
 function uid(){return Date.now()+Math.floor(Math.random()*1000)}
 function hoy(){return new Date().toISOString().slice(0,10)}
@@ -439,6 +462,285 @@ function toast(msg,type=''){
 function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleString('es-ES')}
 setInterval(updateClock,1000);
 window.onload=()=>{updateClock();load();document.getElementById('fecha').value=hoy();renderAll();}
+   // ── GOOGLE DRIVE FUNCTIONS ─────────────────────────
+
+window.onload=()=>{
+
+  gapi.load('client',async()=>{
+    await gapi.client.init({});
+  });
+
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,
+    scope:SCOPES,
+
+    callback:(resp)=>{
+
+      if(resp.error){
+        alert('Error Drive');
+        return;
+      }
+
+      accessToken=resp.access_token;
+
+      gapi.client.setToken({
+        access_token:accessToken
+      });
+
+      alert('Drive conectado');
+    }
+  });
+
+  render();
+};
+function connectDrive(){
+
+  tokenClient.requestAccessToken({
+    prompt:'consent'
+  });
+}
+
+async function saveToDrive(){
+
+  if(!accessToken){
+    alert('Conecta Drive primero');
+    return;
+  }
+
+  const content=JSON.stringify(DB,null,2);
+
+  const list=await gapi.client.request({
+    path:'https://www.googleapis.com/drive/v3/files',
+    params:{
+      q:`name='${FILE_NAME}' and trashed=false`,
+      fields:'files(id,name)'
+    }
+  });
+
+  const files=list.result.files;
+
+  if(files.length>0){
+
+    driveFileId=files[0].id;
+
+    await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
+      {
+        method:'PATCH',
+        headers:{
+          Authorization:'Bearer '+accessToken,
+          'Content-Type':'application/json'
+        },
+        body:content
+      }
+    );
+
+  }else{
+
+    const metadata={
+      name:FILE_NAME,
+      mimeType:'application/json'
+    };
+
+    const form=new FormData();
+
+    form.append(
+      'metadata',
+      new Blob([JSON.stringify(metadata)],{type:'application/json'})
+    );
+
+    form.append(
+      'file',
+      new Blob([content],{type:'application/json'})
+    );
+
+    const res=await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      {
+        method:'POST',
+        headers:{Authorization:'Bearer '+accessToken},
+        body:form
+      }
+    );
+
+    const data=await res.json();
+    driveFileId=data.id;
+  }
+
+  alert('Guardado en Drive');
+}
+
+async function loadFromDrive(){
+
+  if(!accessToken){
+    alert('Conecta Drive primero');
+    return;
+  }
+
+  const list=await gapi.client.request({
+    path:'https://www.googleapis.com/drive/v3/files',
+    params:{
+      q:`name='${FILE_NAME}' and trashed=false`,
+      fields:'files(id,name)'
+    }
+  });
+
+  const files=list.result.files;
+
+  if(!files.length){
+    alert('No existe archivo Drive');
+    return;
+  }
+
+  driveFileId=files[0].id;
+
+  const res=await gapi.client.request({
+    path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
+    params:{alt:'media'}
+  });
+
+  DB=res.result;
+
+  saveLocal();
+  render();
+
+  alert('Datos cargados');
+}
+  
+// ───────────────────────────────────────────────────
+
+function connectDrive(){
+
+  tokenClient.requestAccessToken({
+    prompt:'consent'
+  });
+}
+
+// ───────────────────────────────────────────────────
+
+async function saveToDrive(){
+
+  if(!accessToken){
+    alert('Conecta Drive primero');
+    return;
+  }
+
+  const content=JSON.stringify(DB,null,2);
+
+  // Buscar archivo existente
+  const list=await gapi.client.request({
+    path:'https://www.googleapis.com/drive/v3/files',
+    params:{
+      q:`name='${FILE_NAME}' and trashed=false`,
+      fields:'files(id,name)'
+    }
+  });
+
+  const files=list.result.files;
+
+  if(files.length>0){
+
+    driveFileId=files[0].id;
+
+    await fetch(
+      `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
+      {
+        method:'PATCH',
+
+        headers:{
+          Authorization:'Bearer '+accessToken,
+          'Content-Type':'application/json'
+        },
+
+        body:content
+      }
+    );
+
+  }else{
+
+    const metadata={
+      name:FILE_NAME,
+      mimeType:'application/json'
+    };
+
+    const form=new FormData();
+
+    form.append(
+      'metadata',
+      new Blob(
+        [JSON.stringify(metadata)],
+        {type:'application/json'}
+      )
+    );
+
+    form.append(
+      'file',
+      new Blob(
+        [content],
+        {type:'application/json'}
+      )
+    );
+
+    const res=await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      {
+        method:'POST',
+
+        headers:{
+          Authorization:'Bearer '+accessToken
+        },
+
+        body:form
+      }
+    );
+
+    const data=await res.json();
+
+    driveFileId=data.id;
+  }
+
+  alert('Guardado en Drive');
+}
+
+// ───────────────────────────────────────────────────
+
+async function loadFromDrive(){
+
+  if(!accessToken){
+    alert('Conecta Drive primero');
+    return;
+  }
+
+  const list=await gapi.client.request({
+    path:'https://www.googleapis.com/drive/v3/files',
+    params:{
+      q:`name='${FILE_NAME}' and trashed=false`,
+      fields:'files(id,name)'
+    }
+  });
+
+  const files=list.result.files;
+
+  if(!files.length){
+    alert('No existe archivo Drive');
+    return;
+  }
+
+  driveFileId=files[0].id;
+
+  const res=await gapi.client.request({
+    path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
+    params:{alt:'media'}
+  });
+
+  DB=res.result;
+
+  saveLocal();
+
+  render();
+
+  alert('Datos cargados');
+}
 </script>
 </body>
 </html>
