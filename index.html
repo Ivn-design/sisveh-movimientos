@@ -670,17 +670,42 @@ const veh=vehObj?vehObj.nombre:'';
 }
 
 function editMovement(id){
+
   const m=DB.movimientos.find(x=>x.id===id);
+
   if(!m)return;
+
   editId=id;
-  document.getElementById('op').value=m.op||'';
-  document.getElementById('veh').value=m.veh||'';
+
+  const opObj=DB.operaciones.find(o=>o.nombre===m.op);
+
+  if(opObj){
+    document.getElementById('op').value=opObj.id;
+    renderVehiculosMovimiento();
+
+    const vehObj=DB.vehiculos.find(
+      v=>
+        v.nombre===m.veh &&
+        String(v.opId)===String(opObj.id)
+    );
+
+    if(vehObj){
+      document.getElementById('veh').value=vehObj.id;
+    }
+  }
+
   document.getElementById('fecha').value=m.fecha||'';
   document.getElementById('hini').value=m.hini||'';
   document.getElementById('hpar').value=m.hpar||'';
   document.getElementById('dir').value=m.dir||'';
   document.getElementById('obs').value=m.obs||'';
-  window.scrollTo({top:0,behavior:'smooth'});
+
+  window.scrollTo({
+    top:0,
+    behavior:'smooth'
+  });
+
+  toast('Editando movimiento');
 }
 
 function delMovement(id){
