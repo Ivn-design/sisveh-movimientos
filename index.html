@@ -1161,16 +1161,10 @@ function actualizarEstadoArchivo(){
   const currentId=driveFileId||sharedFileId||'';
 
   const df=document.getElementById('driveFileDisplay');
-
-  if(df){
-    df.value=currentId;
-  }
+  if(df) df.value=currentId;
 
   const cf=document.getElementById('cfgFileStatus');
-
-  if(cf){
-    cf.textContent=currentId || '—';
-  }
+  if(cf) cf.textContent=currentId || '—';
 
 }
   function showTab(id,btn){
