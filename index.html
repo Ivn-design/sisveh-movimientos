@@ -838,11 +838,7 @@ function load(){
 
     if(data){
 
-      DB={
-        operaciones:data.operaciones||[],
-        vehiculos:data.vehiculos||[],
-        movimientos:data.movimientos||[]
-      };
+      DB=normalizarDB(data);
 
       // ─────────────────────────────
       // RECONSTRUIR OPERACIONES
@@ -898,6 +894,54 @@ function load(){
 
   }catch(e){}
 }
+function normalizarDB(data){
+
+  const base={
+    operaciones:data?.operaciones||[],
+    vehiculos:data?.vehiculos||[],
+    movimientos:data?.movimientos||[]
+  };
+
+  base.movimientos.forEach(m=>{
+
+    if(
+      m.op &&
+      !base.operaciones.some(o=>o.nombre===m.op)
+    ){
+      base.operaciones.push({
+        id:uid(),
+        nombre:m.op
+      });
+    }
+
+  });
+
+  base.movimientos.forEach(m=>{
+
+    const op=base.operaciones.find(o=>o.nombre===m.op);
+
+    if(!op)return;
+
+    if(
+      m.veh &&
+      !base.vehiculos.some(
+        v=>
+          v.nombre===m.veh &&
+          String(v.opId)===String(op.id)
+      )
+    ){
+      base.vehiculos.push({
+        id:uid(),
+        opId:op.id,
+        nombre:m.veh
+      });
+    }
+
+  });
+
+  return base;
+}
+  
 function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;DB={
   operaciones:[],
   vehiculos:[],
@@ -1100,7 +1144,7 @@ async function loadFromDrive(){
         params:{alt:'media'}
       });
 
-      DB=res.result;
+      DB=normalizarDB(res.result);
 
       persist();
       renderAll();
@@ -1132,7 +1176,7 @@ async function loadFromDrive(){
       params:{alt:'media'}
     });
 
-    DB=res.result;
+    DB=normalizarDB(res.result);
 
     persist();
     renderAll();
