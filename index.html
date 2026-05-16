@@ -109,6 +109,43 @@ textarea{resize:vertical}
   </div>
   <div class="actions">
 
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:10px">
+
+  <input
+    id="sharedDriveId"
+    placeholder="ID archivo compartido"
+    style="
+      background:var(--bg3);
+      border:1px solid var(--b2);
+      color:var(--tx);
+      border-radius:5px;
+      padding:6px 10px;
+      width:240px;
+      font-size:11px;
+    "
+  >
+
+  <select
+    id="driveRole"
+    style="
+      background:var(--bg3);
+      border:1px solid var(--b2);
+      color:var(--tx);
+      border-radius:5px;
+      padding:6px;
+      font-size:11px;
+    "
+  >
+    <option value="editor">Editor</option>
+    <option value="lector">Lector</option>
+  </select>
+
+  <button class="btn bg bsm" onclick="connectSharedDrive()">
+    🔗 Conectar compartido
+  </button>
+
+</div>
+
   <button class="btn bp bsm" onclick="connectDrive()">
     ☁ Drive
   </button>
@@ -266,6 +303,8 @@ const FILE_NAME='sisveh_movimientos_data.json';
 let tokenClient=null;
 let accessToken=null;
 let driveFileId=null;
+  let sharedFileId=localStorage.getItem('sisveh_shared_id')||'';
+let driveRole=localStorage.getItem('sisveh_drive_role')||'editor';
 
 function uid(){return Date.now()+Math.floor(Math.random()*1000)}
 function hoy(){return new Date().toISOString().slice(0,10)}
@@ -496,6 +535,8 @@ window.onload=()=>{
   load();
 
   document.getElementById('fecha').value=hoy();
+  document.getElementById('sharedDriveId').value=sharedFileId;
+document.getElementById('driveRole').value=driveRole;
 
   renderAll();
 
