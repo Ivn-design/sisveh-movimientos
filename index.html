@@ -61,7 +61,26 @@ textarea{resize:vertical}
 .toast.err{border-color:var(--red)}
 .sep{height:1px;background:var(--b1);margin:14px 0}
 .tip{font-size:10px;color:var(--tx2);line-height:1.5;margin-bottom:10px}
-@media(max-width:720px){
+.drive-status{
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;
+  letter-spacing:1px;
+  padding:4px 8px;
+  border-radius:14px;
+  border:1px solid var(--b2);
+}
+
+.drive-status.off{
+  color:var(--tx2);
+  background:var(--bg3);
+}
+
+.drive-status.on{
+  color:var(--green);
+  background:rgba(16,185,129,.12);
+  border-color:rgba(16,185,129,.35);
+}
+  @media(max-width:720px){
   #hdr{height:auto;min-height:58px;align-items:flex-start;padding:9px 12px}
   .logo h1{font-size:16px}
   #clock{font-size:12px}
@@ -93,6 +112,7 @@ textarea{resize:vertical}
   <button class="btn bp bsm" onclick="connectDrive()">
     ☁ Drive
   </button>
+    <span id="driveStatus" class="drive-status off">● Desconectado</span>
 
   <button class="btn bg bsm" onclick="saveToDrive()">
     💾 Guardar
@@ -507,7 +527,13 @@ window.onload=()=>{
           gapi.client.setToken({
             access_token:accessToken
           });
-
+          
+const ds=document.getElementById('driveStatus');
+if(ds){
+  ds.textContent='● Conectado';
+  ds.className='drive-status on';
+}
+          
           toast('Drive conectado');
         }
       });
