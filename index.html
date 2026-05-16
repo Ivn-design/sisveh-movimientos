@@ -558,8 +558,9 @@ function getFiltered(){
 
   document.getElementById('newOp').value='';
 
-  persist();
-  renderAll();
+  schedDriveSave();
+
+renderAll();
 
   toast('Operación creada');
 }
@@ -591,8 +592,9 @@ function addVehiculo(){
 
   document.getElementById('newVeh').value='';
 
-  persist();
-  renderAll();
+  schedDriveSave();
+
+renderAll();
 
   toast('Vehículo añadido');
 }
@@ -664,9 +666,11 @@ const veh=vehObj?vehObj.nombre:'';
     DB.movimientos.push(obj);
     toast('Movimiento guardado');
   }
-  persist();
-  clearForm(false);
-  renderAll();
+  schedDriveSave();
+
+clearForm(false);
+
+renderAll();
 }
 
 function editMovement(id){
@@ -711,7 +715,11 @@ function editMovement(id){
 function delMovement(id){
   if(!confirm('¿Eliminar este movimiento?'))return;
   DB.movimientos=DB.movimientos.filter(x=>x.id!==id);
-  persist();renderAll();toast('Movimiento eliminado');
+  schedDriveSave();
+
+renderAll();
+
+toast('Movimiento eliminado');
 }
 
 function clearForm(clearMain=true){
