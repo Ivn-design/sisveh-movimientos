@@ -472,8 +472,15 @@ window.onload=()=>{
   document.getElementById('fecha').value=hoy();
 
   gapi.load('client',async()=>{
-    await gapi.client.init({});
-  });
+
+  await gapi.client.init({
+    apiKey:'',
+    discoveryDocs:[
+      'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+    ]
+  );
+
+});
 
   tokenClient=google.accounts.oauth2.initTokenClient({
 
