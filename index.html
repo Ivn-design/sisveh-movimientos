@@ -1095,7 +1095,8 @@ if(cf) cf.textContent=currentId || '—';
     path:'https://www.googleapis.com/drive/v3/files',
     params:{
       q:`name='${FILE_NAME}' and trashed=false`,
-      fields:'files(id,name)'
+      fields:'files(id,name,modifiedTime)',
+orderBy:'modifiedTime desc'
     }
   });
 
@@ -1107,6 +1108,13 @@ if(cf) cf.textContent=currentId || '—';
   }
 
   driveFileId=files[0].id;
+  const currentId=driveFileId||sharedFileId||'';
+
+const df=document.getElementById('driveFileDisplay');
+if(df) df.value=currentId;
+
+const cf=document.getElementById('cfgFileStatus');
+if(cf) cf.textContent=currentId || '—';
 
   const res=await gapi.client.request({
     path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
