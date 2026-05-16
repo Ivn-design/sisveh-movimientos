@@ -304,78 +304,123 @@ textarea{resize:vertical}
   </section>
     </section>
 
-  <section id="tab-config" class="tabpage">
+ <section id="tab-config" class="tabpage">
 
   <section class="pn">
-
     <div class="ph">
-      <div class="pt">⚙ Configuración Multiusuario</div>
+      <div class="pt">📱 Instalar en iPhone/iPad</div>
     </div>
 
     <div class="pb">
+      <div class="card">
+        <p class="tip">
+          1. Abre Safari en tu iPhone o iPad
+          <br><br>
+          2. Ve a la URL de SISVEH
+          <br><br>
+          3. Pulsa el botón Compartir
+          <br><br>
+          4. Toca “Añadir a pantalla de inicio”
+          <br><br>
+          5. Nombre: SISVEH → “Añadir”
+        </p>
 
-      <p class="tip">
-        Configuración del sistema multiusuario mediante Google Drive compartido.
-      </p>
-
-      <div class="fg">
-
-        <div class="fr">
-          <label>ID archivo compartido</label>
-
-          <input
-            id="sharedDriveId"
-            placeholder="Pega aquí el ID del archivo compartido"
-          >
+        <div class="tip" style="background:var(--bg4);padding:10px;border-radius:6px;margin-top:12px;">
+          ✅ Icono en pantalla de inicio &nbsp; ✅ Pantalla completa &nbsp; ✅ Misma cuenta Google &nbsp; ⚠ Necesita internet
         </div>
+      </div>
+    </div>
+  </section>
 
-        <div class="fr">
+  <section class="pn">
+    <div class="ph">
+      <div class="pt">👥 Multi-usuario</div>
+    </div>
 
-          <label>Rol del usuario</label>
+    <div class="pb">
+      <div class="card">
+        <p class="tip" style="color:var(--gold);font-weight:700;letter-spacing:1px;">
+          PASOS PARA AÑADIR UN EDITOR:
+        </p>
 
-          <select id="driveRole">
-            <option value="editor">Editor</option>
-            <option value="lector">Solo lectura</option>
-          </select>
-
-        </div>
-
+        <p class="tip">
+          1. Abre Google Drive → busca <b>sisveh_movimientos_data.json</b> → clic derecho → Compartir
+          <br><br>
+          2. Añade el correo con permiso <b>Editor</b> o <b>Lector</b>
+          <br><br>
+          3. Dale el ID del archivo y la URL de SISVEH
+          <br><br>
+          4. El otro usuario: Config → pega ID → elige rol → Conectar
+        </p>
       </div>
 
-      <div class="actions">
-
-        <button class="btn bp bsm" onclick="connectSharedDrive()">
-          🔗 Conectar compartido
-        </button>
-
-        <button class="btn bg bsm" onclick="copyDriveFileId()">
-          📋 Copiar ID actual
-        </button>
-
+      <div class="fr" style="margin-top:15px;">
+        <label>ID del archivo actual</label>
+        <div style="display:flex;gap:8px;">
+          <input id="driveFileDisplay" readonly placeholder="Conéctate a Drive">
+          <button class="btn bg bsm" onclick="copyDriveFileId()">📋 Copiar</button>
+        </div>
       </div>
 
       <div class="sep"></div>
 
-      <p class="tip">
+      <div class="pt" style="font-size:12px;margin-bottom:12px;">Conectar a archivo compartido:</div>
 
-        1. Conecta Google Drive.
-        <br><br>
+      <div class="fr">
+        <label>ID del archivo</label>
+        <input id="sharedDriveId" placeholder="Pega aquí el ID...">
+      </div>
 
-        2. Guarda datos en Drive.
-        <br><br>
+      <div class="fr">
+        <label>Mi rol</label>
+        <select id="driveRole">
+          <option value="editor">Editor</option>
+          <option value="lector">Lector</option>
+        </select>
+      </div>
 
-        3. Comparte el archivo JSON desde Google Drive.
-        <br><br>
+      <div class="actions">
+        <button class="btn bp bsm" onclick="connectSharedDrive()">Conectar</button>
+        <button class="btn bg bsm" onclick="clearSharedDrive()">Volver a mi archivo</button>
+      </div>
+    </div>
+  </section>
 
-        4. El otro usuario pega el ID aquí.
-        <br><br>
-
-        5. Ambos usuarios trabajarán sobre el mismo archivo.
-
-      </p>
-
+  <section class="pn">
+    <div class="ph">
+      <div class="pt">👤 Cuenta y estado</div>
     </div>
 
+    <div class="pb">
+      <div class="card">
+        <p class="tip">
+          DRIVE: <b id="cfgDriveStatus">No conectado</b>
+          <br><br>
+          ARCHIVO: <b id="cfgFileStatus">—</b>
+          <br><br>
+          ÚLTIMO GUARDADO: <b id="cfgLastSaved">—</b>
+        </p>
+      </div>
+
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn bp bsm" onclick="connectDrive()">🔑 Iniciar sesión</button>
+        <button class="btn bg bsm" onclick="loadFromDrive()">🔄 Recargar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="pn">
+    <div class="ph">
+      <div class="pt">💾 Backup</div>
+    </div>
+
+    <div class="pb">
+      <div class="actions">
+        <button class="btn bg bsm" onclick="exportJSON()">⬇ JSON</button>
+        <button class="btn bg bsm" onclick="document.getElementById('imp').click()">⬆ Importar</button>
+        <button class="btn bd bsm" onclick="resetAll()">⚠ Borrar todo</button>
+      </div>
+    </div>
   </section>
 
 </section>
@@ -669,6 +714,12 @@ if(ds){
   ds.textContent='● Conectado';
   ds.className='drive-status on';
 }
+
+          const cfg=document.getElementById('cfgDriveStatus');
+
+if(cfg){
+  cfg.textContent='Conectado';
+}
           
           toast('Drive conectado');
         }
@@ -720,6 +771,22 @@ function copyDriveFileId(){
   navigator.clipboard.writeText(id);
 
   toast('ID copiado');
+}
+
+function clearSharedDrive(){
+  sharedFileId='';
+  driveRole='editor';
+
+  localStorage.removeItem('sisveh_shared_id');
+  localStorage.removeItem('sisveh_drive_role');
+
+  const sid=document.getElementById('sharedDriveId');
+  if(sid) sid.value='';
+
+  const role=document.getElementById('driveRole');
+  if(role) role.value='editor';
+
+  toast('Modo archivo propio activado');
 }
   
 // ─────────────────────────────────────────
@@ -803,6 +870,24 @@ async function saveToDrive(){
 
     driveFileId=data.id;
   }
+
+  const df=document.getElementById('driveFileDisplay');
+
+if(df){
+  df.value=driveFileId||sharedFileId||'';
+}
+
+const cf=document.getElementById('cfgFileStatus');
+
+if(cf){
+  cf.textContent=driveFileId||sharedFileId||'—';
+}
+
+const lg=document.getElementById('cfgLastSaved');
+
+if(lg){
+  lg.textContent=new Date().toLocaleString('es-ES');
+}
 
   toast('Guardado en Drive');
 }
