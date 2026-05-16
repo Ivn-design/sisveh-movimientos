@@ -1064,72 +1064,85 @@ async function loadFromDrive(){
     toast('Conecta Drive primero','err');
     return;
   }
-if(sharedFileId){
 
-  driveFileId=sharedFileId;
+  try{
 
-  const res=await gapi.client.request({
-    path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
-    params:{alt:'media'}
-  });
+    if(sharedFileId){
 
-  DB=res.result;
+      driveFileId=sharedFileId;
 
-  persist();
+      const res=await gapi.client.request({
+        path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
+        params:{alt:'media'}
+      });
 
-  renderAll();
+      DB=res.result;
 
-const currentId=driveFileId||sharedFileId||'';
+      persist();
+      renderAll();
+      actualizarEstadoArchivo();
 
-const df=document.getElementById('driveFileDisplay');
-if(df) df.value=currentId;
+      toast('Archivo compartido cargado');
+      return;
+    }
 
-const cf=document.getElementById('cfgFileStatus');
-if(cf) cf.textContent=currentId || '—';
-  
-  toast('Archivo compartido cargado');
+    const list=await gapi.client.request({
+      path:'https://www.googleapis.com/drive/v3/files',
+      params:{
+        q:`name='${FILE_NAME}' and trashed=false`,
+        fields:'files(id,name)'
+      }
+    });
 
-  return;
-}
-  const list=await gapi.client.request({
-  path:'https://www.googleapis.com/drive/v3/files',
-  params:{
-    q:`name='${FILE_NAME}' and trashed=false`,
-    fields:'files(id,name)'
+    const files=list.result.files;
+
+    if(!files || !files.length){
+      toast('No existe archivo Drive','err');
+      return;
+    }
+
+    driveFileId=files[0].id;
+
+    const res=await gapi.client.request({
+      path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
+      params:{alt:'media'}
+    });
+
+    DB=res.result;
+
+    persist();
+    renderAll();
+    actualizarEstadoArchivo();
+
+    toast('Datos cargados');
+
+  }catch(e){
+
+    console.error('Error loadFromDrive:',e);
+
+    toast(
+      'Error cargando Drive: '+
+      (
+        e?.result?.error?.message ||
+        e?.body ||
+        e?.message ||
+        'desconocido'
+      ),
+      'err'
+    );
   }
-});
-
-  const files=list.result.files;
-
-  if(!files.length){
-    toast('No existe archivo Drive','err');
-    return;
-  }
-
-  driveFileId=files[0].id;
-
-  const res=await gapi.client.request({
-    path:`https://www.googleapis.com/drive/v3/files/${driveFileId}`,
-    params:{alt:'media'}
-  });
-
-  DB=res.result;
-
-  persist();
-
-  renderAll();
-
-const currentId=driveFileId||sharedFileId||'';
-
-const df=document.getElementById('driveFileDisplay');
-if(df) df.value=currentId;
-
-const cf=document.getElementById('cfgFileStatus');
-if(cf) cf.textContent=currentId || '—';
-  
-  toast('Datos cargados');
 }
+function actualizarEstadoArchivo(){
 
+  const currentId=driveFileId||sharedFileId||'';
+
+  const df=document.getElementById('driveFileDisplay');
+  if(df) df.value=currentId;
+
+  const cf=document.getElementById('cfgFileStatus');
+  if(cf) cf.textContent=currentId || '—';
+
+}
   function showTab(id,btn){
 
   document.querySelectorAll('.tabpage')
