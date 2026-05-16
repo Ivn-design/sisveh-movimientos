@@ -477,44 +477,51 @@ window.onload=()=>{
 
   document.getElementById('fecha').value=hoy();
 
-  gapi.load('client',async()=>{
+  renderAll();
 
-  await gapi.client.init({
-    apiKey:'',
-    discoveryDocs:[
-      'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
-    ]
-  );
+  if(window.gapi && window.google){
 
-});
+    gapi.load('client',async()=>{
 
-  tokenClient=google.accounts.oauth2.initTokenClient({
-
-    client_id:CLIENT_ID,
-
-    scope:SCOPES,
-
-    callback:(resp)=>{
-
-      if(resp.error){
-        alert('Error Drive');
-        return;
-      }
-
-      accessToken=resp.access_token;
-
-      gapi.client.setToken({
-        access_token:accessToken
+      await gapi.client.init({
+        discoveryDocs:[
+          'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
+        ]
       });
 
-      toast('Drive conectado');
-    }
-  });
+      tokenClient=google.accounts.oauth2.initTokenClient({
 
-  renderAll();
+        client_id:CLIENT_ID,
+
+        scope:SCOPES,
+
+        callback:(resp)=>{
+
+          if(resp.error){
+            toast('Error Drive','err');
+            return;
+          }
+
+          accessToken=resp.access_token;
+
+          gapi.client.setToken({
+            access_token:accessToken
+          });
+
+          toast('Drive conectado');
+        }
+      });
+
+    });
+  }
 };
 
   function connectDrive(){
+
+  if(!tokenClient){
+    toast('Drive aún no está listo. Espera 2 segundos y vuelve a pulsar.','err');
+    return;
+  }
 
   tokenClient.requestAccessToken({
     prompt:'consent'
