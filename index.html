@@ -718,7 +718,8 @@ if(ds){
           const cfg=document.getElementById('cfgDriveStatus');
 
 if(cfg){
-  cfg.textContent='Conectado';
+  cfg.innerHTML='✅ Conectado';
+  cfg.style.color='var(--green)';
 }
           
           toast('Drive conectado');
@@ -889,6 +890,17 @@ if(lg){
   lg.textContent=new Date().toLocaleString('es-ES');
 }
 
+const currentId=driveFileId||sharedFileId||'';
+
+const df=document.getElementById('driveFileDisplay');
+if(df) df.value=currentId;
+
+const cf=document.getElementById('cfgFileStatus');
+if(cf) cf.textContent=currentId || '—';
+
+const lg=document.getElementById('cfgLastSaved');
+if(lg) lg.textContent=new Date().toLocaleString('es-ES');
+  
   toast('Guardado en Drive');
 }
 
@@ -915,6 +927,14 @@ if(sharedFileId){
 
   renderAll();
 
+const currentId=driveFileId||sharedFileId||'';
+
+const df=document.getElementById('driveFileDisplay');
+if(df) df.value=currentId;
+
+const cf=document.getElementById('cfgFileStatus');
+if(cf) cf.textContent=currentId || '—';
+  
   toast('Archivo compartido cargado');
 
   return;
@@ -947,6 +967,14 @@ if(sharedFileId){
 
   renderAll();
 
+const currentId=driveFileId||sharedFileId||'';
+
+const df=document.getElementById('driveFileDisplay');
+if(df) df.value=currentId;
+
+const cf=document.getElementById('cfgFileStatus');
+if(cf) cf.textContent=currentId || '—';
+  
   toast('Datos cargados');
 }
 
