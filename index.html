@@ -785,16 +785,73 @@ function renderAll(){
 
 function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(DB))}
 function load(){
+
   try{
-    const data=JSON.parse(localStorage.getItem(STORAGE_KEY));
+
+    const data=JSON.parse(
+      localStorage.getItem(STORAGE_KEY)
+    );
 
     if(data){
+
       DB={
         operaciones:data.operaciones||[],
         vehiculos:data.vehiculos||[],
         movimientos:data.movimientos||[]
       };
+
+      // ─────────────────────────────
+      // RECONSTRUIR OPERACIONES
+      // ─────────────────────────────
+
+      DB.movimientos.forEach(m=>{
+
+        if(
+          m.op &&
+          !DB.operaciones.some(o=>o.nombre===m.op)
+        ){
+
+          DB.operaciones.push({
+            id:uid(),
+            nombre:m.op
+          });
+        }
+
+      });
+
+      // ─────────────────────────────
+      // RECONSTRUIR VEHÍCULOS
+      // ─────────────────────────────
+
+      DB.movimientos.forEach(m=>{
+
+        const op=DB.operaciones.find(
+          o=>o.nombre===m.op
+        );
+
+        if(!op)return;
+
+        if(
+          m.veh &&
+          !DB.vehiculos.some(
+            v=>
+              v.nombre===m.veh &&
+              String(v.opId)===String(op.id)
+          )
+        ){
+
+          DB.vehiculos.push({
+            id:uid(),
+            opId:op.id,
+            nombre:m.veh
+          });
+        }
+
+      });
+
+      persist();
     }
+
   }catch(e){}
 }
 function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;DB={
