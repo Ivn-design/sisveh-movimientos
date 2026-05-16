@@ -797,7 +797,11 @@ function load(){
     }
   }catch(e){}
 }
-function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;DB={movimientos:[]};persist();renderAll();toast('Datos borrados')}
+function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;DB={
+  operaciones:[],
+  vehiculos:[],
+  movimientos:[]
+};persist();renderAll();toast('Datos borrados')}
 function exportJSON(){download('sisveh_backup.json',JSON.stringify(DB,null,2),'application/json')}
 function importJSON(e){
   const f=e.target.files[0]; if(!f)return;
@@ -958,103 +962,7 @@ function clearSharedDrive(){
 
 async function saveToDrive(){
 
-  if(!accessToken){
-    toast('Conecta Drive primero','err');
-    return;
-  }
-
-  const content=JSON.stringify(DB,null,2);
-
-  const list=await gapi.client.request({
-    path:'https://www.googleapis.com/drive/v3/files',
-    params:{
-      q:`name='${FILE_NAME}' and trashed=false`,
-      fields:'files(id,name)'
-    }
-  });
-
-  const files=list.result.files;
-
-  if(files.length>0){
-
-    driveFileId=files[0].id;
-
-    await fetch(
-      `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,
-      {
-        method:'PATCH',
-
-        headers:{
-          Authorization:'Bearer '+accessToken,
-          'Content-Type':'application/json'
-        },
-
-        body:content
-      }
-    );
-
-  }else{
-
-    const metadata={
-      name:FILE_NAME,
-      mimeType:'application/json'
-    };
-
-    const form=new FormData();
-
-    form.append(
-      'metadata',
-      new Blob(
-        [JSON.stringify(metadata)],
-        {type:'application/json'}
-      )
-    );
-
-    form.append(
-      'file',
-      new Blob(
-        [content],
-        {type:'application/json'}
-      )
-    );
-
-    const res=await fetch(
-      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-      {
-        method:'POST',
-
-        headers:{
-          Authorization:'Bearer '+accessToken
-        },
-
-        body:form
-      }
-    );
-
-    const data=await res.json();
-
-    driveFileId=data.id;
-  }
-
-  const df=document.getElementById('driveFileDisplay');
-
-if(df){
-  df.value=driveFileId||sharedFileId||'';
-}
-
-const cf=document.getElementById('cfgFileStatus');
-
-if(cf){
-  cf.textContent=driveFileId||sharedFileId||'—';
-}
-
-const lg=document.getElementById('cfgLastSaved');
-
-if(lg){
-  lg.textContent=new Date().toLocaleString('es-ES');
-}
-
-const currentId=driveFileId||sharedFileId||'';
+  const currentId=driveFileId||sharedFileId||'';
 
 const df=document.getElementById('driveFileDisplay');
 if(df) df.value=currentId;
