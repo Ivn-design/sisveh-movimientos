@@ -1110,23 +1110,90 @@ function clearSharedDrive(){
 
 async function saveToDrive(){
 
-  const currentId=driveFileId||sharedFileId||'';
+  if(!accessToken){
+    toast('Conecta Drive primero','err');
+    return;
+  }
 
-const df=document.getElementById('driveFileDisplay');
-if(df) df.value=currentId;
+  try{
 
-const cf=document.getElementById('cfgFileStatus');
-if(cf) cf.textContent=currentId || '—';
+    const metadata={
+      name:FILE_NAME,
+      mimeType:'application/json'
+    };
 
-actualizarEstadoArchivo();
+    const file=new Blob(
+      [JSON.stringify(DB,null,2)],
+      {type:'application/json'}
+    );
 
-const lg=document.getElementById('cfgLastSaved');
+    const form=new FormData();
 
-if(lg){
-  lg.textContent=new Date().toLocaleString('es-ES');
-}
-  
-  toast('Guardado en Drive');
+    form.append(
+      'metadata',
+      new Blob(
+        [JSON.stringify(metadata)],
+        {type:'application/json'}
+      )
+    );
+
+    form.append('file',file);
+
+    // ─────────────────────────────
+    // ACTUALIZAR ARCHIVO EXISTENTE
+    // ─────────────────────────────
+
+    if(driveFileId){
+
+      await fetch(
+        `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`,
+        {
+          method:'PATCH',
+          headers:{
+            Authorization:'Bearer '+accessToken
+          },
+          body:form
+        }
+      );
+
+    }else{
+
+      // ───────────────────────────
+      // CREAR ARCHIVO NUEVO
+      // ───────────────────────────
+
+      const res=await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        {
+          method:'POST',
+          headers:{
+            Authorization:'Bearer '+accessToken
+          },
+          body:form
+        }
+      );
+
+      const data=await res.json();
+
+      driveFileId=data.id;
+    }
+
+    actualizarEstadoArchivo();
+
+    const lg=document.getElementById('cfgLastSaved');
+
+    if(lg){
+      lg.textContent=new Date().toLocaleString('es-ES');
+    }
+
+    toast('Guardado en Drive');
+
+  }catch(e){
+
+    console.error(e);
+
+    toast('Error guardando Drive','err');
+  }
 }
 
 // ─────────────────────────────────────────
