@@ -740,11 +740,19 @@ toast('Movimiento eliminado');
 }
 
 function clearForm(clearMain=true){
-  if(clearMain){editId=null}
-  ['op','veh','fecha','hini','hpar','dir','obs'].forEach(id=>{
-    const el=document.getElementById(id); if(el)el.value='';
-  });
-  document.getElementById('fecha').value=hoy();
+
+  if(clearMain){
+    editId=null;
+
+    document.getElementById('op').value='';
+    document.getElementById('veh').value='';
+    document.getElementById('fecha').value=hoy();
+  }
+
+  document.getElementById('hini').value='';
+  document.getElementById('hpar').value='';
+  document.getElementById('dir').value='';
+  document.getElementById('obs').value='';
 }
 
 function renderFilters(){
