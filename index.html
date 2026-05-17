@@ -42,6 +42,15 @@ textarea{resize:vertical}
 .bp{background:var(--ac);color:#fff}.bp:hover{background:var(--ac2)}
 .bg{background:transparent;color:var(--tx2);border:1px solid var(--b2)}.bg:hover{color:var(--tx);border-color:var(--ac)}
 .bd{background:var(--red);color:#fff}.bd:hover{filter:brightness(1.15)}
+  .bsu{
+  background:rgba(16,185,129,.14);
+  color:var(--green);
+  border:1px solid rgba(16,185,129,.45);
+}
+
+.bsu:hover{
+  filter:brightness(1.1);
+}
 .bgo{background:var(--gold);color:#1a0e00}.bgo:hover{filter:brightness(1.1)}
 .bsm{padding:4px 9px;font-size:10px}.bxs{padding:3px 7px;font-size:10px}
 .actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
@@ -151,8 +160,12 @@ textarea{resize:vertical}
   <div class="actions">
 
   <button id="driveBtn" class="btn bg bsm" onclick="connectDrive()">
-  ● Drive desconectado
+  ● Conectar Drive
 </button>
+
+<span id="roleBadge" class="btn bg bsm" style="display:none;">
+  👁 LECTOR
+</span>
 
   <button class="btn bg bsm" onclick="saveToDrive()">
     💾 Guardar
@@ -1015,8 +1028,13 @@ document.getElementById('driveRole').value=driveRole;
 const db=document.getElementById('driveBtn');
 
 if(db){
-  db.innerHTML='✅ Drive conectado';
-  db.className='btn bsu bsm';
+  db.innerHTML='● Drive conectado';
+db.className='btn bsu bsm';
+
+const rb=document.getElementById('roleBadge');
+if(rb){
+  rb.style.display='inline-flex';
+  rb.innerHTML=driveRole==='lector' ? '👁 LECTOR' : '✏️ EDITOR';
 }
 
           const cfg=document.getElementById('cfgDriveStatus');
