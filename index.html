@@ -150,10 +150,9 @@ textarea{resize:vertical}
   </div>
   <div class="actions">
 
-  <button class="btn bp bsm" onclick="connectDrive()">
-    ☁ Drive
-  </button>
-    <span id="driveStatus" class="drive-status off">● Desconectado</span>
+  <button id="driveBtn" class="btn bg bsm" onclick="connectDrive()">
+  ● Drive desconectado
+</button>
 
   <button class="btn bg bsm" onclick="saveToDrive()">
     💾 Guardar
@@ -992,9 +991,17 @@ document.getElementById('driveRole').value=driveRole;
         callback:(resp)=>{
 
           if(resp.error){
-            toast('Error Drive','err');
-            return;
-          }
+
+  const db=document.getElementById('driveBtn');
+
+  if(db){
+    db.innerHTML='● Drive desconectado';
+    db.className='btn bg bsm';
+  }
+
+  toast('Error Drive','err');
+  return;
+}
 
           accessToken=resp.access_token;
 
@@ -1002,10 +1009,11 @@ document.getElementById('driveRole').value=driveRole;
             access_token:accessToken
           });
           
-const ds=document.getElementById('driveStatus');
-if(ds){
-  ds.textContent='● Conectado';
-  ds.className='drive-status on';
+const db=document.getElementById('driveBtn');
+
+if(db){
+  db.innerHTML='✅ Drive conectado';
+  db.className='btn bsu bsm';
 }
 
           const cfg=document.getElementById('cfgDriveStatus');
