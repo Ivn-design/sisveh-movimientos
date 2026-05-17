@@ -170,12 +170,16 @@ textarea{resize:vertical}
   <nav id="tabs">
 
   <button class="tab active" onclick="showTab('dashboard',this)">
-    📊 DASHBOARD
-  </button>
+  📊 DASHBOARD
+</button>
 
-  <button class="tab" onclick="showTab('config',this)">
-    ⚙ CONFIG
-  </button>
+<button class="tab" onclick="showTab('operaciones',this)">
+  🗂 OPERACIONES
+</button>
+
+<button class="tab" onclick="showTab('config',this)">
+  ⚙ CONFIG
+</button>
 
 </nav>
 
@@ -188,45 +192,7 @@ textarea{resize:vertical}
     <div class="card"><div class="sv" id="stStop">—</div><div class="sl">Media parado</div></div>
   </section>
 
-    <section class="pn">
-  <div class="ph">
-    <div class="pt">🗂 Operaciones y vehículos</div>
-  </div>
-
-  <div class="pb">
-
-    <div class="fg">
-      <div class="fr">
-        <label>Nueva operación</label>
-        <input id="newOp" placeholder="Ej: Operación Alfa">
-      </div>
-
-      <div class="fr" style="display:flex;align-items:end;">
-        <button class="btn bp" onclick="addOperacion()">+ Crear operación</button>
-      </div>
-    </div>
-
-    <div class="fg">
-      <div class="fr">
-        <label>Operación activa</label>
-        <select id="activeOp" onchange="renderAll()">
-          <option value="">Selecciona operación</option>
-        </select>
-      </div>
-
-      <div class="fr">
-        <label>Nuevo vehículo en operación</label>
-        <input id="newVeh" placeholder="Matrícula, alias o descripción">
-      </div>
-
-      <div class="fr" style="display:flex;align-items:end;">
-        <button class="btn bp" onclick="addVehiculo()">+ Añadir vehículo</button>
-      </div>
-    </div>
-
-  </div>
-</section>
-    
+        
   <section class="pn">
     <div class="ph">
       <div class="pt">➕ Alta rápida</div>
@@ -348,7 +314,44 @@ textarea{resize:vertical}
   </section>
     </section>
 
- <section id="tab-config" class="tabpage">
+ <section class="pn">
+  <div class="ph">
+    <div class="pt">🗂 Operaciones y vehículos</div>
+  </div>
+
+  <div class="pb">
+
+    <div class="fg">
+      <div class="fr">
+        <label>Nueva operación</label>
+        <input id="newOp" placeholder="Ej: Operación Alfa">
+      </div>
+
+      <div class="fr" style="display:flex;align-items:end;">
+        <button class="btn bp" onclick="addOperacion()">+ Crear operación</button>
+      </div>
+    </div>
+
+    <div class="fg">
+      <div class="fr">
+        <label>Operación activa</label>
+        <select id="activeOp" onchange="renderAll()">
+          <option value="">Selecciona operación</option>
+        </select>
+      </div>
+
+      <div class="fr">
+        <label>Nuevo vehículo en operación</label>
+        <input id="newVeh" placeholder="Matrícula, alias o descripción">
+      </div>
+
+      <div class="fr" style="display:flex;align-items:end;">
+        <button class="btn bp" onclick="addVehiculo()">+ Añadir vehículo</button>
+      </div>
+    </div>
+
+  </div>
+</section>
 
   <section class="pn">
     <div class="ph">
