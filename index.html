@@ -911,59 +911,7 @@ function load(){
     );
 
     if(data){
-
       DB=normalizarDB(data);
-
-      // ─────────────────────────────
-      // RECONSTRUIR OPERACIONES
-      // ─────────────────────────────
-
-      DB.movimientos.forEach(m=>{
-
-        if(
-          m.op &&
-          !DB.operaciones.some(o=>o.nombre===m.op)
-        ){
-
-          DB.operaciones.push({
-            id:uid(),
-            nombre:m.op
-          });
-        }
-
-      });
-
-      // ─────────────────────────────
-      // RECONSTRUIR VEHÍCULOS
-      // ─────────────────────────────
-
-      DB.movimientos.forEach(m=>{
-
-        const op=DB.operaciones.find(
-          o=>o.nombre===m.op
-        );
-
-        if(!op)return;
-
-        if(
-          m.veh &&
-          !DB.vehiculos.some(
-            v=>
-              v.nombre===m.veh &&
-              String(v.opId)===String(op.id)
-          )
-        ){
-
-          DB.vehiculos.push({
-            id:uid(),
-            opId:op.id,
-            nombre:m.veh
-          });
-        }
-
-      });
-
-      persist();
     }
 
   }catch(e){}
