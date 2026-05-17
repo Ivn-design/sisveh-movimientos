@@ -1011,6 +1011,15 @@ if(cfg){
   cfg.innerHTML='✅ Conectado';
   cfg.style.color='var(--green)';
 }       
+          try{
+
+  await loadFromDrive();
+
+}catch(e){
+
+  console.error(e);
+
+}
           toast('Drive conectado');
         }
       });
