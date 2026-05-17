@@ -1000,51 +1000,51 @@ document.getElementById('driveRole').value=driveRole;
 
       tokenClient=google.accounts.oauth2.initTokenClient({
 
-        client_id:CLIENT_ID,
+  client_id:CLIENT_ID,
 
-        scope:SCOPES,
+  scope:SCOPES,
 
-        callback:(resp)=>{
+  callback:(resp)=>{
 
-  if(resp.error){
+    if(resp.error){
+
+      const db=document.getElementById('driveBtn');
+
+      if(db){
+        db.innerHTML='● Conectar Drive';
+        db.className='btn bg bsm';
+      }
+
+      toast('Error Drive','err');
+      return;
+    }
+
+    accessToken=resp.access_token;
+
+    gapi.client.setToken({
+      access_token:accessToken
+    });
 
     const db=document.getElementById('driveBtn');
 
     if(db){
-      db.innerHTML='● Conectar Drive';
+      db.innerHTML='● Drive conectado';
       db.className='btn bg bsm';
     }
 
-    toast('Error Drive','err');
+    const cfg=document.getElementById('cfgDriveStatus');
 
-    return;
+    if(cfg){
+      cfg.innerHTML='✅ Conectado';
+      cfg.style.color='var(--green)';
+    }
+
+    loadFromDrive().catch(e=>console.error(e));
+
+    toast('Drive conectado');
   }
 
-  accessToken=resp.access_token;
-
-  gapi.client.setToken({
-    access_token:accessToken
-  });
-
-  const db=document.getElementById('driveBtn');
-
-  if(db){
-    db.innerHTML='● Drive conectado';
-    db.className='btn bg bsm';
-  }
-
-  const cfg=document.getElementById('cfgDriveStatus');
-
-  if(cfg){
-    cfg.innerHTML='✅ Conectado';
-    cfg.style.color='var(--green)';
-  }
-
-  loadFromDrive().catch(e=>console.error(e));
-
-  toast('Drive conectado');
-}      
-          });
+});
           loadFromDrive().catch(e=>console.error(e));
           toast('Drive conectado');
         }
