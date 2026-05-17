@@ -163,6 +163,9 @@ textarea{resize:vertical}
   ● Conectar Drive
 </button>
 
+    <span id="roleBadge" class="btn bg bsm" style="display:none;">
+  ✏️ EDITOR
+</span>
 <span id="roleBadge" class="btn bg bsm" style="display:none;">
   👁 LECTOR
 </span>
@@ -1048,7 +1051,12 @@ if(rb){
       db.innerHTML='● Drive conectado';
       db.className='btn bsu bsm';
     }
+const rb=document.getElementById('roleBadge');
 
+if(rb){
+  rb.style.display='inline-flex';
+  rb.innerHTML=driveRole==='lector' ? '👁 LECTOR' : '✏️ EDITOR';
+}
     const cfg=document.getElementById('cfgDriveStatus');
 
     if(cfg){
