@@ -797,15 +797,33 @@ function renderAnalysis(){
 }
 
 function renderStats(){
-  const ops=new Set(DB.movimientos.map(m=>m.op).filter(Boolean)).size;
-  const veh=new Set(DB.movimientos.map(m=>m.veh).filter(Boolean)).size;
+
+  const ops=DB.operaciones.length;
+
+  const veh=DB.vehiculos.length;
+
   const mov=DB.movimientos.length;
-  const stops=DB.movimientos.map(computeStopped).filter(v=>v!==null&&v>=0);
-  const avg=stops.length?Math.round(stops.reduce((a,b)=>a+b,0)/stops.length):null;
+
+  const stops=DB.movimientos
+    .map(computeStopped)
+    .filter(v=>v!==null&&v>=0);
+
+  const avg=stops.length
+    ?Math.round(
+      stops.reduce((a,b)=>a+b,0)/stops.length
+    )
+    :null;
+
   document.getElementById('stOps').textContent=ops;
+
   document.getElementById('stVeh').textContent=veh;
+
   document.getElementById('stMov').textContent=mov;
-  document.getElementById('stStop').textContent=avg!==null?minsToText(avg):'—';
+
+  document.getElementById('stStop').textContent=
+    avg!==null
+      ?minsToText(avg)
+      :'—';
 }
 
 function renderAll(){
