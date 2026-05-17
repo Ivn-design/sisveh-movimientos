@@ -1138,15 +1138,15 @@ async function saveToDrive(){
     );
 
     form.append('file',file);
-
+const targetId=sharedFileId||driveFileId||'';
     // ─────────────────────────────
     // ACTUALIZAR ARCHIVO EXISTENTE
     // ─────────────────────────────
 
-    if(driveFileId){
+    if(targetId){
 
       await fetch(
-        `https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`,
+        `https://www.googleapis.com/upload/drive/v3/files/${targetId}?uploadType=multipart`,
         {
           method:'PATCH',
           headers:{
@@ -1155,7 +1155,7 @@ async function saveToDrive(){
           body:form
         }
       );
-
+driveFileId=targetId;
     }else{
 
       // ───────────────────────────
