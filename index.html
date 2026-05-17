@@ -817,16 +817,23 @@ function renderAll(){
 }
 
 function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(DB))}
-  function schedDriveSave(){
+  let saveTimer=null;
 
-  // Guardado local
+function schedDriveSave(){
+
   persist();
 
-  // Si Drive está conectado
-  if(accessToken){
+  if(!accessToken)
+    return;
+
+  if(saveTimer)
+    clearTimeout(saveTimer);
+
+  saveTimer=setTimeout(()=>{
 
     saveToDrive();
-  }
+
+  },700);
 }
 
   function normalizarDB(data){
