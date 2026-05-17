@@ -1012,9 +1012,26 @@ document.getElementById('driveRole').value=driveRole;
 
       if(db){
         db.innerHTML='● Conectar Drive';
-        db.className='btn bg bsm';
+        db.className='btn bsu bsm';
+        const rb=document.getElementById('roleBadge');
+
+if(rb){
+
+  rb.style.display='inline-flex';
+
+  rb.innerHTML=
+    driveRole==='lector'
+      ? '👁 LECTOR'
+      : '✏️ EDITOR';
+}
       }
 
+      const rb=document.getElementById('roleBadge');
+
+if(rb){
+  rb.style.display='none';
+}
+      
       toast('Error Drive','err');
       return;
     }
