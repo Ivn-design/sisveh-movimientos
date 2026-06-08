@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#080c14">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&family=Exo+2:wght@400;500;600&display=swap');
 :root{
@@ -257,6 +258,8 @@ textarea{resize:vertical}
       <div class="pt">🔎 Filtros y acciones</div>
       <div class="actions">
         <button class="btn bg bsm" onclick="exportCSV()">Exportar CSV</button>
+        <button class="btn bg bsm" onclick="document.getElementById('impGPS').click()">⬆ Importar GPS</button>
+<input type="file" id="impGPS" accept=".xls,.xlsx" style="display:none" onchange="importGPS(event)">
         <button class="btn bg bsm" onclick="exportJSON()">Backup JSON</button>
         <button class="btn bg bsm" onclick="document.getElementById('imp').click()">Importar JSON</button>
         <input type="file" id="imp" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -773,7 +776,7 @@ function renderTable(){
     return;
   }
   tb.innerHTML=rows.map((m,i)=>{
-    const stopped=computeStopped(m);
+    const stopped=m.stopMins!==undefined ? m.stopMins : computeStopped(m);
     const stoppedClass=stopped!==null?'bdg bdg-stop':'';
     return `<tr>
       <td style="color:var(--tx2);font-size:10px">${i+1}</td>
@@ -962,6 +965,156 @@ toast('JSON importado');
     }catch(err){toast('Error importando JSON','err')}
   };
   r.readAsText(f); e.target.value='';
+}
+  function importGPS(e){
+
+  const file=e.target.files[0];
+  if(!file)return;
+
+  const opId=document.getElementById('op').value;
+  const vehId=document.getElementById('veh').value;
+
+  const opObj=DB.operaciones.find(o=>String(o.id)===String(opId));
+  const vehObj=DB.vehiculos.find(v=>String(v.id)===String(vehId));
+
+  if(!opObj || !vehObj){
+    toast('Selecciona operación y vehículo antes de importar','err');
+    e.target.value='';
+    return;
+  }
+
+  const reader=new FileReader();
+
+  reader.onload=evt=>{
+
+    try{
+
+      const data=new Uint8Array(evt.target.result);
+      const wb=XLSX.read(data,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+
+      if(!rows.length){
+        toast('Excel vacío','err');
+        return;
+      }
+
+      const cols=Object.keys(rows[0]);
+
+      if(cols.includes('From') && cols.includes('To')){
+        importStopDetails(rows,opObj,vehObj);
+      }else if(cols.includes('Position time') && cols.includes('Speed')){
+        importHistoryStops(rows,opObj,vehObj);
+      }else{
+        toast('Formato GPS no reconocido','err');
+      }
+
+    }catch(err){
+      console.error(err);
+      toast('Error importando GPS','err');
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+  e.target.value='';
+}
+
+function importStopDetails(rows,opObj,vehObj){
+
+  let added=0;
+
+  rows.forEach(r=>{
+
+    const from=new Date(r.From);
+    const to=new Date(r.To);
+
+    if(isNaN(from)||isNaN(to))return;
+
+    const mins=Math.max(0,Math.round((to-from)/60000));
+
+    DB.movimientos.push({
+      id:uid(),
+      op:opObj.nombre,
+      veh:vehObj.nombre,
+      fecha:from.toISOString().slice(0,10),
+      hini:from.toTimeString().slice(0,5),
+      hpar:to.toTimeString().slice(0,5),
+      dir:r.Address || `${r.Lat}, ${r.Lon}`,
+      obs:'',
+      stopMins:mins
+    });
+
+    added++;
+  });
+
+  schedDriveSave();
+  renderAll();
+  toast(`${added} paradas importadas`);
+}
+
+function importHistoryStops(rows,opObj,vehObj){
+
+  const puntos=rows
+    .map(r=>({
+      t:new Date(r['Position time']),
+      lat:parseFloat(r.Lat),
+      lon:parseFloat(r.Lon),
+      speed:parseFloat(String(r.Speed).replace(',','.'))
+    }))
+    .filter(p=>!isNaN(p.t)&&!isNaN(p.speed))
+    .sort((a,b)=>a.t-b.t);
+
+  let added=0;
+  let grupo=[];
+
+  function cerrarGrupo(){
+
+    if(grupo.length<2){
+      grupo=[];
+      return;
+    }
+
+    const ini=grupo[0].t;
+    const fin=grupo[grupo.length-1].t;
+    const mins=Math.round((fin-ini)/60000);
+
+    if(mins<5){
+      grupo=[];
+      return;
+    }
+
+    const p=grupo[Math.floor(grupo.length/2)];
+
+    DB.movimientos.push({
+      id:uid(),
+      op:opObj.nombre,
+      veh:vehObj.nombre,
+      fecha:ini.toISOString().slice(0,10),
+      hini:ini.toTimeString().slice(0,5),
+      hpar:fin.toTimeString().slice(0,5),
+      dir:`${p.lat}, ${p.lon}`,
+      obs:'',
+      stopMins:mins
+    });
+
+    added++;
+    grupo=[];
+  }
+
+  puntos.forEach(p=>{
+
+    if(p.speed<=2){
+      grupo.push(p);
+    }else{
+      cerrarGrupo();
+    }
+  });
+
+  cerrarGrupo();
+
+  schedDriveSave();
+  renderAll();
+  toast(`${added} paradas candidatas importadas`);
 }
 function exportCSV(){
   const rows=[['Operacion','Vehiculo','Fecha','Inicio movimiento','Hora parada','Tiempo parado hasta siguiente','Direccion parada','Observaciones']];
