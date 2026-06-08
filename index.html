@@ -966,7 +966,7 @@ toast('JSON importado');
   };
   r.readAsText(f); e.target.value='';
 }
-  function importGPS(e){
+ function importGPS(e){
 
   const file=e.target.files[0];
   if(!file)return;
@@ -989,33 +989,20 @@ toast('JSON importado');
 
     try{
 
-      const data=new Uint8Array(evt.target.result);
-      let wb;
+      const html=evt.target.result;
 
-try{
-  wb=XLSX.read(data,{type:'array'});
-}catch(e){
-
-  const txt=new TextDecoder('utf-8').decode(data);
-
-  wb=XLSX.read(txt,{
-    type:'string',
-    raw:true
-  });
-}
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      const rows=parseGpsHtmlTable(html);
 
       if(!rows.length){
-        toast('Excel vacío','err');
+        toast('No se encontraron datos GPS','err');
         return;
       }
 
-      const cols=Object.keys(rows[0]);
+      const first=rows[0];
 
-      if(cols.includes('From') && cols.includes('To')){
+      if('From' in first && 'To' in first){
         importStopDetails(rows,opObj,vehObj);
-      }else if(cols.includes('Position time') && cols.includes('Speed')){
+      }else if('Position time' in first && 'Speed' in first){
         importHistoryStops(rows,opObj,vehObj);
       }else{
         toast('Formato GPS no reconocido','err');
@@ -1027,8 +1014,76 @@ try{
     }
   };
 
-  reader.readAsArrayBuffer(file);
+  reader.readAsText(file,'utf-8');
   e.target.value='';
+}
+
+  function parseGpsHtmlTable(html){
+
+  const doc=new DOMParser().parseFromString(html,'text/html');
+
+  const trs=[...doc.querySelectorAll('tr')];
+
+  let headers=[];
+  const data=[];
+
+  trs.forEach(tr=>{
+
+    const cells=[...tr.querySelectorAll('th,td')]
+      .map(x=>x.textContent.trim());
+
+    if(!cells.length)return;
+
+    if(
+      cells.includes('From') ||
+      cells.includes('Position time')
+    ){
+      headers=cells;
+      return;
+    }
+
+    if(headers.length && cells.length>=headers.length-1){
+
+      const obj={};
+
+      headers.forEach((h,i)=>{
+        if(h)obj[h]=cells[i]||'';
+      });
+
+      data.push(obj);
+    }
+  });
+
+  return data;
+}
+
+function parseGpsDate(s){
+
+  if(!s)return null;
+
+  const m=String(s).match(
+    /^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})(?::(\d{2}))?/
+  );
+
+  if(!m)return null;
+
+  return new Date(
+    Number(m[1]),
+    Number(m[2])-1,
+    Number(m[3]),
+    Number(m[4]),
+    Number(m[5]),
+    Number(m[6]||0)
+  );
+}
+
+function dateToYMD(d){
+  return d.toISOString().slice(0,10);
+}
+
+function dateToHM(d){
+  return String(d.getHours()).padStart(2,'0')+':'+
+         String(d.getMinutes()).padStart(2,'0');
 }
 
 function importStopDetails(rows,opObj,vehObj){
@@ -1037,8 +1092,8 @@ function importStopDetails(rows,opObj,vehObj){
 
   rows.forEach(r=>{
 
-    const from=new Date(r.From);
-    const to=new Date(r.To);
+    const from=parseGpsDate(r.From);
+const to=parseGpsDate(r.To);
 
     if(isNaN(from)||isNaN(to))return;
 
@@ -1048,9 +1103,9 @@ function importStopDetails(rows,opObj,vehObj){
       id:uid(),
       op:opObj.nombre,
       veh:vehObj.nombre,
-      fecha:from.toISOString().slice(0,10),
-      hini:from.toTimeString().slice(0,5),
-      hpar:to.toTimeString().slice(0,5),
+      fecha:dateToYMD(from),
+hini:dateToHM(from),
+hpar:dateToHM(to),
       dir:r.Address || `${r.Lat}, ${r.Lon}`,
       obs:'',
       stopMins:mins
@@ -1068,13 +1123,19 @@ function importHistoryStops(rows,opObj,vehObj){
 
   const puntos=rows
     .map(r=>({
-      t:new Date(r['Position time']),
+      t:parseGpsDate(r['Position time']),
       lat:parseFloat(r.Lat),
       lon:parseFloat(r.Lon),
-      speed:parseFloat(String(r.Speed).replace(',','.'))
+      speed:parseFloat(
+        String(r.Speed).replace(',','.')
+      )
     }))
-    .filter(p=>!isNaN(p.t)&&!isNaN(p.speed))
-    .sort((a,b)=>a.t-b.t);
+    .filter(
+      p=>p.t && !isNaN(p.speed)
+    )
+    .sort(
+      (a,b)=>a.t-b.t
+    );
 
   let added=0;
   let grupo=[];
