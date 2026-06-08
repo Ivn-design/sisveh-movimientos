@@ -990,7 +990,19 @@ toast('JSON importado');
     try{
 
       const data=new Uint8Array(evt.target.result);
-      const wb=XLSX.read(data,{type:'array'});
+      let wb;
+
+try{
+  wb=XLSX.read(data,{type:'array'});
+}catch(e){
+
+  const txt=new TextDecoder('utf-8').decode(data);
+
+  wb=XLSX.read(txt,{
+    type:'string',
+    raw:true
+  });
+}
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
 
